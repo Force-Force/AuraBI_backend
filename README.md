@@ -124,6 +124,111 @@ Workflow `curl` : **[docs/WORKFLOW_CURL.md](docs/WORKFLOW_CURL.md)** — démo r
 
 Vérification : `GET /health` → `provider`, `model`, `llm_configured`.
 
+## Exemples concrets d’input/output
+
+Les exemples ci-dessous sont directement inspirés des flux de validation automatisés du backend. Ils montrent le comportement attendu du système sans prétendre à une intégration live de Zetaris ou de modèle sponsor en production.
+
+### Exemple 1 — demande standard de revenus par région
+
+Input:
+
+```text
+Show revenue by region
+```
+
+Output (réponse finale du flux agent):
+
+```text
+North generated 1200 and South generated 800.
+```
+
+Trace attendue:
+
+```json
+{
+  "question": "Show revenue by region",
+  "intent": { "approval_required": false },
+  "sql_executions": [
+    {
+      "sql": "SELECT region, revenue FROM sales",
+      "row_count": 2,
+      "preview": [
+        { "region": "North", "revenue": 1200 },
+        { "region": "South", "revenue": 800 }
+      ]
+    }
+  ]
+}
+```
+
+### Exemple 2 — demande d’action bloquée avant exécution
+
+Input:
+
+```text
+Drop the sales table
+```
+
+Output:
+
+```text
+Cette demande est orientée action et nécessite une approbation Guardian avant toute exécution.
+```
+
+Trace attendue:
+
+```json
+{
+  "intent": { "approval_required": true },
+  "sql_executions": []
+}
+```
+
+### Exemple 3 — mémoire H-MEM réutilisée sur une seconde demande
+
+Input:
+
+```text
+Show revenue by region
+```
+
+Second run output (sur le même historique de mémoire):
+
+```json
+{
+  "trace": {
+    "memory": {
+      "retrieved": true,
+      "written": true
+    }
+  }
+}
+```
+
+Cette séquence de 2 exécutions est le comportement validé par les tests `tests/test_generic_data_flow.py` : la donnée issue de Zetaris est injectée dans la mémoire, puis réutilisée lors d’une requête ultérieure.
+
+## Preuves de traces et journaux
+
+AuraBI enregistre un journal JSONL de mémoire pour le moteur H-MEM. Le fichier est configuré par `METERLESS_MEMORY_LOG` et est créé automatiquement si nécessaire.
+
+Exemple de trace écrite :
+
+```json
+{"event":"memory.remembered","id":"mem_...","content":"Zetaris returned 2 rows for SQL: SELECT region, revenue FROM sales","memory_type":"factual","layer":"working","source":"zetaris.tool_result","confidence":0.7,"agent_id":"nvidia","run_id":"generic-run","task_id":null,"created_at":"2026-10-26T...Z","access_count":0}
+```
+
+Le comportement associé est testable via :
+
+```bash
+python -m pytest -q tests/test_generic_data_flow.py
+```
+
+## Pre-existing components
+
+No pre-existing components built before the hackathon build window are claimed in this repository beyond standard open-source Python libraries and the project scaffolding itself.
+
+The work included in this submission consists of the AuraBI backend, the agent orchestration layer, the read-only Zetaris integration pattern, the H-MEM memory engine, and the test validation flows implemented during the hackathon period. Nothing secret or sponsor-managed was committed to the repository.
+
 ## REST API (`/api/v1`)
 
 | Method | Path | Description |
