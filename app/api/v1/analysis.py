@@ -1,4 +1,6 @@
+import json
 import uuid
+from pathlib import Path
 from time import perf_counter
 
 from fastapi import APIRouter, Header, HTTPException, Response
@@ -11,7 +13,33 @@ from app.analysis.model import NemotronClient
 from app.schemas.analysis import AgentQueryRequest, AgentQueryResponse
 
 router = APIRouter(tags=["analysis"])
-_traces: dict[str, AgentQueryResponse] = {}
+
+
+class TraceStore:
+    def __init__(self, path: str | Path = "logs/agent_traces.jsonl") -> None:
+        self.path = Path(path)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+
+    def save(self, payload: dict) -> None:
+        request_id = payload.get("request_id") or str(uuid.uuid4())
+        payload["request_id"] = request_id
+        with self.path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(payload, default=str) + "\n")
+
+    def get(self, request_id: str) -> dict | None:
+        if not self.path.exists():
+            return None
+        with self.path.open("r", encoding="utf-8") as handle:
+            for line in handle:
+                if not line.strip():
+                    continue
+                item = json.loads(line)
+                if item.get("request_id") == request_id:
+                    return item
+        return None
+
+
+_traces = TraceStore()
 
 
 @router.post("/agent/query", response_model=AgentQueryResponse)
@@ -76,7 +104,7 @@ async def query_agent(
         risk_level=trace.get("intent", {}).get("risk_level"),
         approval_required=bool(trace.get("intent", {}).get("approval_required", False)),
     )
-    _traces[request_id] = explain
+    _traces.save(explain.model_dump(mode="json"))
     response.headers["X-Request-ID"] = request_id
     return explain
 
@@ -86,4 +114,4 @@ async def get_agent_trace(request_id: str) -> AgentQueryResponse:
     trace = _traces.get(request_id)
     if trace is None:
         raise HTTPException(status_code=404, detail="Trace not found.")
-    return trace
+    return AgentQueryResponse(**trace)

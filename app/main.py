@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import ProgrammingError
 
-from app.api.v1 import agent_tasks, analysis, chat, edges, etl, execution, guardian, nodes, pipelines, plan, questions, ws
+from app.api.v1 import agent_tasks, analysis, chat, edges, etl, execution, guardian, insights, nodes, pipelines, plan, questions, ws
 from app.config import get_settings
 
 settings = get_settings()
@@ -52,6 +52,7 @@ app.include_router(plan.router, prefix=api_prefix)
 app.include_router(questions.router, prefix=api_prefix)
 app.include_router(etl.router, prefix=api_prefix)
 app.include_router(analysis.router, prefix=api_prefix)
+app.include_router(insights.router, prefix=api_prefix)
 app.include_router(ws.router, prefix=api_prefix)
 
 
