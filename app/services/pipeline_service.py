@@ -30,7 +30,17 @@ def node_to_read(node: Node) -> NodeRead:
 
 
 def edge_to_read(edge: Edge) -> EdgeRead:
-    return EdgeRead(id=edge.id, source=edge.source_node_id, target=edge.target_node_id)
+    return EdgeRead(
+        id=edge.id,
+        source=edge.source_node_id,
+        target=edge.target_node_id,
+        from_column=edge.from_column,
+        to_column=edge.to_column,
+        source_handle=edge.source_handle,
+        target_handle=edge.target_handle,
+        relationship=edge.relationship,
+        metadata=edge.metadata or {},
+    )
 
 
 def pipeline_to_read(pipeline: Pipeline) -> PipelineRead:
@@ -200,6 +210,12 @@ async def create_edge(db: AsyncSession, pipeline_id: UUID, data: EdgeCreate) -> 
         pipeline_id=pipeline_id,
         source_node_id=source.id,
         target_node_id=target.id,
+        from_column=getattr(data, "from_column", None),
+        to_column=getattr(data, "to_column", None),
+        source_handle=getattr(data, "source_handle", None),
+        target_handle=getattr(data, "target_handle", None),
+        relationship=getattr(data, "relationship", None),
+        metadata=getattr(data, "metadata", None) or {},
     )
     db.add(edge)
     pipeline.updated_at = datetime.now(timezone.utc)

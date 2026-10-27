@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Text, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,6 +23,9 @@ class PipelineRunEvent(Base):
         Enum(PipelineRunEventType, name="pipeline_run_event_type", values_callable=lambda x: [e.value for e in x]),
         nullable=False,
     )
+    phase: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)
+    status: Mapped[str | None] = mapped_column(String(32), nullable=True, default=None)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
     message_md: Mapped[str] = mapped_column(Text, nullable=False, default="")
     payload: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     created_at: Mapped[datetime] = mapped_column(

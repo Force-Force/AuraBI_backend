@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Text, func
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,6 +21,11 @@ class PipelineRun(Base):
         default=PipelineRunStatus.PENDING,
         nullable=False,
     )
+    run_number: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    duration_seconds: Mapped[float | None] = mapped_column(Float, nullable=True, default=None)
+    records_processed: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    nodes_executed: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    total_nodes: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
     current_node_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("nodes.id", ondelete="SET NULL"), nullable=True
     )

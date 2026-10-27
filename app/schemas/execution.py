@@ -17,6 +17,9 @@ class PipelineRunEventRead(BaseModel):
     message_md: str
     payload: dict[str, Any]
     created_at: datetime
+    phase: str | None = None
+    status: str | None = None
+    duration_ms: int | None = None
 
     model_config = {"from_attributes": True}
 
@@ -25,6 +28,11 @@ class PipelineRunRead(BaseModel):
     id: UUID
     pipeline_id: UUID
     status: PipelineRunStatus
+    run_number: int | None = None
+    duration_seconds: float | None = None
+    records_processed: int | None = None
+    nodes_executed: int | None = None
+    total_nodes: int | None = None
     current_node_id: UUID | None
     context: dict[str, Any]
     error_message: str | None
