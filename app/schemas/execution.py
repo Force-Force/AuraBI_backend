@@ -33,12 +33,12 @@ class PipelineRunRead(BaseModel):
     records_processed: int | None = None
     nodes_executed: int | None = None
     total_nodes: int | None = None
-    current_node_id: UUID | None
-    context: dict[str, Any]
-    error_message: str | None
-    started_at: datetime | None
-    completed_at: datetime | None
-    created_at: datetime
+    current_node_id: UUID | None = None
+    context: dict[str, Any] = Field(default_factory=dict)
+    error_message: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    created_at: datetime | None = None
     events: list[PipelineRunEventRead] = Field(default_factory=list)
     pending_approvals: list[GuardianApprovalRead] = Field(default_factory=list)
     pending_questions: list[UserQuestionRead] = Field(default_factory=list)

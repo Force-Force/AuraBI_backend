@@ -1,8 +1,8 @@
 import uuid
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship as orm_relationship
 
 from app.db.base import Base
 
@@ -27,6 +27,6 @@ class Edge(Base):
     relationship: Mapped[str | None] = mapped_column(String(64), nullable=True)
     metadata: Mapped[dict | None] = mapped_column(JSONB, default=dict, nullable=True)
 
-    pipeline = relationship("Pipeline", back_populates="edges")
-    source_node = relationship("Node", foreign_keys=[source_node_id], back_populates="outgoing_edges")
-    target_node = relationship("Node", foreign_keys=[target_node_id], back_populates="incoming_edges")
+    pipeline = orm_relationship("Pipeline", back_populates="edges")
+    source_node = orm_relationship("Node", foreign_keys=[source_node_id], back_populates="outgoing_edges")
+    target_node = orm_relationship("Node", foreign_keys=[target_node_id], back_populates="incoming_edges")
